@@ -6,7 +6,7 @@ StorySpot is an anonymous storytelling platform where users share personal exper
 
 ---
 
-## ✨ Core Idea
+## Core Idea
 
 Most platforms reward attention.  
 StorySpot rewards **honesty**.
@@ -19,53 +19,53 @@ No profiles. No followers. No pressure.
 
 ---
 
-## 🧱 Features
+## Features
 
-### 🌍 Public Story Wall
+### Public Story Wall
 - Post short anonymous stories
 - Explore a global feed of raw, unfiltered thoughts
 - No likes, no comments — just stories
 
 ---
 
-### 🤝 Smart Matching
+### Smart Matching
 - Instantly matched with one person who shared a similar story
 - Lightweight semantic/keyword-based similarity
 - Each match creates a **private 1:1 connection**
 
 ---
 
-### 🏠 Private Home
+### Private Home
 - Your personal, private space
 - Contains multiple “walls” — one per connection
 - Only you can access it
 
 ---
 
-### 📝 Connection Walls
+### Connection Walls
 - Anonymous note exchange between two users
 - Simple, chronological messages
 - No typing indicators, no read receipts
 
 ---
 
-### 💭 Emotional Experience
+### Emotional Experience
 - Reinforcing messages like:
   > “You’re not alone in this.”
 - Designed to feel calm, safe, and human
 
 ---
 
-## 📈 Growth Features
+## Growth Features
 
-- 📤 Shareable story cards (for social media)
-- 🧠 Daily writing prompts
-- ❤️ “Someone feels this too” feedback loop
-- 🔔 Subtle new message indicators
+- Shareable story cards (for social media)
+- Daily writing prompts
+- “Someone feels this too” feedback loop
+- Subtle new message indicators
 
 ---
 
-## 💰 Monetization (Optional Layer)
+## Monetization (Optional Layer)
 
 - Freemium match limits
 - Unlock old connections
@@ -75,7 +75,7 @@ No profiles. No followers. No pressure.
 
 ---
 
-## 🎯 Design Philosophy
+## Design Philosophy
 
 StorySpot is built on a few strong principles:
 
@@ -86,7 +86,7 @@ StorySpot is built on a few strong principles:
 
 ---
 
-## 🧠 How It Works (Flow)
+## How It Works (Flow)
 
 User enters app
    ↓
