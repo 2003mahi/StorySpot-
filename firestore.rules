@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: stories
+    // Document ID: auto-generated
+    // Fields:
+    //   - text: string (required, 1-500 chars)
+    //   - authorId: string (required, uid)
+    //   - createdAt: timestamp (required)
+    //   - keywords: list (optional, max 10 items)
+    //
+    // Collection: connections
+    // Document ID: auto-generated
+    // Fields:
+    //   - userIds: list (required, size 2)
+    //   - storyIds: list (required, size 2)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: messages
+    // Document ID: auto-generated
+    // Fields:
+    //   - connectionId: string (required)
+    //   - text: string (required, 1-300 chars)
+    //   - senderId: string (required, uid)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: users
+    // Document ID: uid
+    // Fields:
+    //   - uid: string (required, must match document ID)
+    //   - followedAuthorIds: list (required, max 100 items)
+    //   - dailyMatchCount: int (optional)
+    //   - lastResetDate: string (optional, YYYY-MM-DD)
+    //   - isPremium: bool (optional)
+    //
+    // ===============================================================
+
+    function isValidStory(data) {
+      return data.keys().hasAll(['text', 'authorId', 'createdAt']) &&
+             data.keys().hasOnly(['text', 'authorId', 'createdAt', 'keywords', 'isPremiumAuthor']) &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 500 &&
+             data.authorId == request.auth.uid &&
+             data.createdAt == request.time &&
+             (!('keywords' in data) || (data.keywords is list && data.keywords.size() <= 10)) &&
+             (!('isPremiumAuthor' in data) || (data.isPremiumAuthor is bool));
+    }
+
+    function isValidStoryUpdate(data) {
+      return data.keys().hasAll(['text', 'authorId', 'createdAt']) &&
+             data.keys().hasOnly(['text', 'authorId', 'createdAt', 'keywords', 'isPremiumAuthor']) &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 500 &&
+             data.authorId == resource.data.authorId &&
+             data.createdAt == resource.data.createdAt &&
+             (!('keywords' in data) || (data.keywords is list && data.keywords.size() <= 10)) &&
+             (!('isPremiumAuthor' in data) || (data.isPremiumAuthor is bool));
+    }
+
+    function isValidConnection(data) {
+      return data.keys().hasAll(['userIds', 'storyIds', 'createdAt']) &&
+             data.keys().hasOnly(['userIds', 'storyIds', 'createdAt']) &&
+             data.userIds is list && data.userIds.size() == 2 &&
+             request.auth.uid in data.userIds &&
+             data.storyIds is list && data.storyIds.size() == 2 &&
+             data.createdAt == request.time;
+    }
+
+    function isValidMessage(data) {
+      let connection = get(/databases/$(database)/documents/connections/$(data.connectionId)).data;
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let isOld = request.time > connection.createdAt + duration.value(7, 'd');
+      
+      return data.keys().hasAll(['connectionId', 'text', 'senderId', 'createdAt']) &&
+             data.keys().hasOnly(['connectionId', 'text', 'senderId', 'createdAt']) &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 300 &&
+             data.senderId == request.auth.uid &&
+             data.createdAt == request.time &&
+             (user.isPremium == true || !isOld);
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'followedAuthorIds']) &&
+             data.keys().hasOnly(['uid', 'followedAuthorIds', 'displayName', 'dailyMatchCount', 'lastResetDate', 'isPremium']) &&
+             data.uid == request.auth.uid &&
+             data.followedAuthorIds is list && data.followedAuthorIds.size() <= 100 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('dailyMatchCount' in data) || (data.dailyMatchCount is int && data.dailyMatchCount >= 0)) &&
+             (!('lastResetDate' in data) || (data.lastResetDate is string)) &&
+             (!('isPremium' in data) || (data.isPremium is bool));
+    }
+
+    function canCreateConnection() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return user.isPremium == true || user.dailyMatchCount < 2;
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return request.auth != null &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "amahidar1@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    match /stories/{storyId} {
+      allow read: if true;
+      allow create: if request.auth != null && isValidStory(request.resource.data);
+      allow update: if request.auth != null && 
+                    resource.data.authorId == request.auth.uid &&
+                    isValidStoryUpdate(request.resource.data);
+      allow delete: if request.auth != null && 
+                    resource.data.authorId == request.auth.uid;
+    }
+
+    match /connections/{connectionId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.userIds;
+      allow create: if request.auth != null && isValidConnection(request.resource.data) && canCreateConnection();
+    }
+
+    match /messages/{messageId} {
+      allow read: if request.auth != null && 
+                    request.auth.uid in get(/databases/$(database)/documents/connections/$(resource.data.connectionId)).data.userIds;
+      allow create: if request.auth != null && 
+                    isValidMessage(request.resource.data) &&
+                    request.auth.uid in get(/databases/$(database)/documents/connections/$(request.resource.data.connectionId)).data.userIds;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update: if (isOwner(userId) && isValidUser(request.resource.data)) || isAdmin();
+    }
+  }
+}

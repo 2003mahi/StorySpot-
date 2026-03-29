@@ -1,0 +1,5 @@
+{
+  "name": "StorySpot",
+  "description": "A minimal web app for anonymous storytelling and one-to-one connections.",
+  "requestFramePermissions": []
+}

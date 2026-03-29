@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Story": {
+      "title": "Story",
+      "description": "A short story posted to the public wall.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "The content of the story." },
+        "authorId": { "type": "string", "description": "The UID of the user who posted the story." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the story was posted." },
+        "keywords": { "type": "array", "items": { "type": "string" }, "description": "Themes/keywords for the story." },
+        "isPremiumAuthor": { "type": "boolean", "description": "Whether the author is a premium user." }
+      },
+      "required": ["text", "authorId", "createdAt"]
+    },
+    "Connection": {
+      "title": "Connection",
+      "description": "A private connection between two users based on similar stories.",
+      "type": "object",
+      "properties": {
+        "userIds": { "type": "array", "items": { "type": "string" }, "description": "The UIDs of the two users in the connection." },
+        "storyIds": { "type": "array", "items": { "type": "string" }, "description": "The IDs of the two stories that triggered the match." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the connection was created." }
+      },
+      "required": ["userIds", "storyIds", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A private note exchanged between two matched users.",
+      "type": "object",
+      "properties": {
+        "connectionId": { "type": "string", "description": "The ID of the connection this message belongs to." },
+        "text": { "type": "string", "description": "The content of the message." },
+        "senderId": { "type": "string", "description": "The UID of the user who sent the message." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the message was sent." }
+      },
+      "required": ["connectionId", "text", "senderId", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile with followed authors, display name, and usage limits.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The UID of the user." },
+        "displayName": { "type": "string", "description": "The display name of the user." },
+        "followedAuthorIds": { "type": "array", "items": { "type": "string" }, "description": "The UIDs of the authors followed by this user." },
+        "dailyMatchCount": { "type": "integer", "description": "Number of matches created today." },
+        "lastResetDate": { "type": "string", "description": "The date (YYYY-MM-DD) when the match count was last reset." },
+        "isPremium": { "type": "boolean", "description": "Whether the user has a premium subscription." }
+      },
+      "required": ["uid", "followedAuthorIds"]
+    }
+  },
+  "firestore": {
+    "/stories/{storyId}": { "schema": "Story", "description": "Public stories collection." },
+    "/connections/{connectionId}": { "schema": "Connection", "description": "Private connections collection." },
+    "/messages/{messageId}": { "schema": "Message", "description": "Private messages collection." },
+    "/users/{userId}": { "schema": "User", "description": "User profiles collection." }
+  }
+}
